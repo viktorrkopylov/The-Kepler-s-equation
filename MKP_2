@@ -1,0 +1,81 @@
+#include <iostream>
+#include <cmath>
+
+
+# define PI           3.14159265358979323846 
+
+using namespace std;
+
+
+double const pi = 3.14159265358979323846;
+double Me = 38600.4;
+double T = 9015;                        // период обращения (в секундах)
+double Ra = 1017000 + 1737000;     //=2754000                //  радиус апоцентра
+double Rp = 350000 + 1737000;    //=2087000                 //  радиус перицентра 
+double eps = 1e-6;
+double w = 2 * PI / T;                  // средняя угловая скорость 
+double a = (Ra + Rp) / 2;               // большая полуось 
+double e = ((Ra - Rp) / (2 * a));       // эсцентриситет орбиты 0,487929
+double p = a * (1 - e * e);
+
+
+double radius(double p, double teta, double e, double a)
+{
+    double radius = p / (1 + e * cos(teta));
+    return radius;
+}
+
+
+
+double Vr(double p, double teta)
+{
+    return sqrt(Me / p) * e * sin(teta);
+}
+
+
+
+double Vn(double p, double teta)
+{
+    return sqrt(Me / p) * (1 + e * cos(teta));
+}
+
+
+
+double V( double p, double teta )
+{
+    double r = Vr(p, teta);
+    double n = Vn(p, teta);
+    return sqrt(r * r + n * n);
+}
+
+
+double excentr(double E)
+{
+    if (atan(sqrt((1 + e) / (1 - e)) * tan(E / 2)) * 2 > 0)
+        return atan(sqrt((1 + e) / (1 - e)) * tan(E / 2)) * 2;
+    else 
+        return atan(sqrt((1 + e) / (1 - e)) * tan(E / 2)) * 2 + 2 * PI;
+}
+
+double iterationMethod(double E_next, double E, double M)
+{
+    if (fabs(E - E_next) < eps)
+    {
+        cout << " " << endl;
+        return E_next;
+    }
+    else
+    {
+        return iterationMethod(e * sin(E_next) + M, E_next, M);
+    }
+}
+
+
+
+int main() {
+    for (int i = 0; i < 361; i++)
+    {
+        double teta = excentr(iterationMethod(e * sin(i * 2 * pi / 360) + (i * 2 * pi / 360), i * 2 * pi / 360, i * 2 * pi / 360));     //истинная аномалия
+        cout << radius(p, teta, e, a) << "\t" << Vr(p, teta) << "\t" << Vn(p, teta) << "\t" << V(p, teta) << endl;
+    }
+}
